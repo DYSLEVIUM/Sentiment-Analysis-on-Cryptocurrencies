@@ -42,11 +42,11 @@ if __name__ == "__main__":
     ]
     logger.info("data sources loaded")
 
-    # ! TODO: Remove this
-    tweets_csv_data = [
-        (lambda ds: setattr(ds, "df", ds.df[:1000]) or ds)(tweet_csv_data)
-        for tweet_csv_data in tweets_csv_data
-    ]
+    # ! TODO: Remove this, only for testing
+    # tweets_csv_data = [
+    #     (lambda ds: setattr(ds, "df", ds.df[:1000]) or ds)(tweet_csv_data)
+    #     for tweet_csv_data in tweets_csv_data
+    # ]
 
     # Preprocessing
     tweets_data = [
@@ -276,16 +276,16 @@ if __name__ == "__main__":
             )
 
     # Sentiment Distribution by Model
-    sentiment_data = pd.concat(
+    sentiment_distribution_by_model_data = pd.concat(
         [analysis_df[f"{model}_sentiment"] for model in sentiments], axis=1
-    )
+    ).melt(var_name="Model", value_name="Sentiment")
     visualizations.append(
         BoxPlot(
-            sentiment_data,
-            "Sentiment",
-            "Model",
-            "Sentiment Distribution by Model",
-            "sentiment_distribution_by_model",
+            sentiment_distribution_by_model_data,
+            x="Model",
+            y="Sentiment",
+            title="Sentiment Distribution by Model",
+            filename="sentiment_distribution_by_model",
         )
     )
 
@@ -303,95 +303,3 @@ if __name__ == "__main__":
     )
 
     logger.info("saved to csv")
-
-    exit(0)
-
-    # Sentiment and Price Over Time
-    plt.figure(figsize=(12, 6))
-    for model in models:
-        model_name = model.__class__.__name__
-        plt.plot(
-            analysis_df.index,
-            analysis_df[f"{model_name}_sentiment"],
-            label=f"{model_name} Sentiment",
-        )
-
-    for coin in coins:
-        plt.plot(
-            analysis_df.index,
-            analysis_df[f"{coin.ticker}_price_change"],
-            label=f"{coin.ticker} Price Change",
-            linestyle="--",
-        )
-
-    plt.title("Sentiment and Price Changes Over Time")
-    plt.xlabel("Date")
-    plt.ylabel("Value")
-    plt.legend()
-    plt.savefig(
-        "data/out/visualizations/sentiment_and_price_change_over_time.svg",
-        dpi=600,
-        bbox_inches="tight",
-        facecolor="white",
-        edgecolor="none",
-    )
-
-    # Average Sentiment by Model
-    plt.figure(figsize=(10, 6))
-    model_means = {
-        model.__class__.__name__: analysis_df[
-            f"{model.__class__.__name__}_sentiment"
-        ].mean()
-        for model in models
-    }
-    plt.bar(model_means.keys(), model_means.values())
-    plt.title("Average Sentiment Score by Model")
-    plt.ylabel("Average Sentiment")
-    plt.xticks(rotation=45)
-    plt.savefig(
-        "data/out/visualizations/average_sentiment_by_model.svg",
-        dpi=600,
-        bbox_inches="tight",
-        facecolor="white",
-        edgecolor="none",
-    )
-
-    # Sentiment vs Price Change Scatter
-    plt.figure(figsize=(10, 6))
-    for model in models:
-        model_name = model.__class__.__name__
-        for coin in coins:
-            plt.scatter(
-                analysis_df[f"{model_name}_sentiment"],
-                analysis_df[f"{coin.ticker}_price_change"],
-                alpha=0.5,
-                label=f"{model_name} vs {coin.ticker}",
-            )
-
-    plt.title("Sentiment vs Price Change")
-    plt.xlabel("Sentiment Score")
-    plt.ylabel("Price Change")
-    plt.legend()
-    plt.savefig(
-        "data/out/visualizations/sentiment_vs_price.svg",
-        dpi=600,
-        bbox_inches="tight",
-        facecolor="white",
-        edgecolor="none",
-    )
-
-    # Sentiment Distribution by Model
-    plt.figure(figsize=(10, 6))
-    sentiment_data = [
-        analysis_df[f"{model.__class__.__name__}_sentiment"] for model in models
-    ]
-    plt.boxplot(sentiment_data, labels=[model.__class__.__name__ for model in models])
-    plt.title("Sentiment Score Distribution by Model")
-    plt.ylabel("Sentiment Score")
-    plt.savefig(
-        "data/out/visualizations/sentiment_distribution.svg",
-        dpi=600,
-        bbox_inches="tight",
-        facecolor="white",
-        edgecolor="none",
-    )

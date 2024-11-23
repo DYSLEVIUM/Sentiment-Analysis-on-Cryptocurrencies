@@ -11,11 +11,12 @@ class CorrelationPlot(Visualization):
         title: str = "Correlation Plot",
         filename: str = "correlation_plot",
     ):
-        super().__init__(filename)
         self.corr_df = corr_df
         self.title = title
 
-    def plot(self):
+        super().__init__(filename)
+
+    def _plot(self):
         fig = plt.figure(figsize=(12, 10))
         sns.heatmap(self.corr_df, annot=True, cmap="coolwarm", vmin=-1, vmax=1)
         plt.title(self.title)
