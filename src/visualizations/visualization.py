@@ -1,6 +1,9 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
 from abc import ABC, abstractmethod
+from src.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 class Visualization(ABC):
     filepath = "data/out/visualizations/"
@@ -19,6 +22,7 @@ class Visualization(ABC):
         pass
 
     def save(self):
+        logger.info(f"saving visualization: {self.filename}")
         self.fig.savefig(
             self.filepath + self.filename + ".svg",
             dpi=600,

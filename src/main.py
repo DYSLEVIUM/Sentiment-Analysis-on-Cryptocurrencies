@@ -11,7 +11,6 @@ from src.utils.settings import reset
 logger = get_logger(__name__)
 
 import pandas as pd
-import numpy as np
 
 from coins.ethereum import Ethereum
 from coins.bitcoin import Bitcoin
@@ -42,9 +41,9 @@ if __name__ == "__main__":
     ]
     logger.info("data sources loaded")
 
-    # ! TODO: Remove this, only for testing
+    # #! TODO: Remove this, only for testing
     # tweets_csv_data = [
-    #     (lambda ds: setattr(ds, "df", ds.df[:1000]) or ds)(tweet_csv_data)
+    #     (lambda ds: setattr(ds, "df", ds.df[:10000]) or ds)(tweet_csv_data)
     #     for tweet_csv_data in tweets_csv_data
     # ]
 
@@ -90,26 +89,38 @@ if __name__ == "__main__":
     ]
 
     logger.info("preprocessing done")
+    
+    total_tweets = sum([len(ds.df) for ds in tweets_data])
+    logger.info(f"total tweets: {total_tweets}")
 
     # Sentiment Prediction
-    sentiments: dict[str, dict[str, list[TweetsCSVDataSource]]] = {
-        model.__class__.__name__: {
-            "sentiment_ds": [
-                (
-                    lambda ds: setattr(
-                        ds,
-                        "df",
-                        ds.df.assign(
-                            sentiment=ds.df["text"].apply(lambda x: model.predict(x))
-                        ),
+    sentiments: dict[str, dict[str, list[TweetsCSVDataSource]]] = {}
+    for model in models:
+        model_name = model.__class__.__name__
+        logger.info(f"processing tweets for {model_name}")
+
+        processed_tweets = 0
+
+        sentiment_ds_list = []
+        for tweet_ds in tweets_data:
+            df_copy = tweet_ds.df.copy()
+            for idx, row in df_copy.iterrows():
+                df_copy.at[idx, "sentiment"] = model.predict(row["text"])
+                processed_tweets += 1
+                
+                if processed_tweets % (total_tweets * 0.1) == 0:
+                    remaining = total_tweets - processed_tweets
+                    logger.info(
+                        f"Processed {processed_tweets:,} tweets; {remaining:,} remaining..."
                     )
-                    or ds
-                )(tweet_ds)
-                for tweet_ds in tweets_data
-            ],
+
+            tweet_ds.df = df_copy
+            sentiment_ds_list.append(tweet_ds)
+
+        sentiments[model_name] = {
+            "sentiment_ds": sentiment_ds_list
         }
-        for model in models
-    }
+
     logger.info("sentiment prediction done")
 
     # Analysis

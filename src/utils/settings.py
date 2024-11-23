@@ -1,3 +1,5 @@
+import os
+import shutil
 import torch
 
 from src.utils.logger import get_logger
@@ -33,3 +35,8 @@ def reset():
     elif DEVICE == "cpu":
         torch.backends.mkldnn.enabled = True
         torch.set_num_threads(4)
+
+    if os.path.exists("data/out/visualizations"):
+        shutil.rmtree("data/out/visualizations")
+
+    os.makedirs("data/out/visualizations", exist_ok=True)
