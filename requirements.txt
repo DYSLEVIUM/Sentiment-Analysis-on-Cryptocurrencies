@@ -1,0 +1,17 @@
+numpy
+pandas
+matplotlib
+seaborn
+torch
+torchvision
+torchaudio
+# cudatoolkit
+transformers
+tqdm
+torchinfo
+torchmetrics
+tokenizers>=0.15.2
+cryptocompare
+scipy
+scikit-learn
+typing_extensions

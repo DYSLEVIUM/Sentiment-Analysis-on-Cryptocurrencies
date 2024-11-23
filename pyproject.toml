@@ -1,0 +1,16 @@
+[project]
+name = "sentiment-analysis-on-cryptocurrencies"
+version = "0.1.0"
+description = "Final Year project using sentiment analysis on cryptocurrencies with correlation to social media"
+
+authors = [
+    {name = "Pushpakant Behera", email = "pushpakantbehera@hotmail.com"}
+]
+dynamic = ["dependencies"]
+
+[build-system]
+requires = ["setuptools>=42", "wheel"]  # Build system requirements
+build-backend = "setuptools.build_meta" # Build backend
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
