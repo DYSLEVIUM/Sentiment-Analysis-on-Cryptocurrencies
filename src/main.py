@@ -25,6 +25,8 @@ from visualizations.visualization import Visualization
 from visualizations.correlation import CorrelationPlot
 from visualizations.boxplot import BoxPlot
 
+from tqdm import tqdm
+
 pd.set_option("display.max_colwidth", None)
 
 if __name__ == "__main__":
@@ -43,7 +45,7 @@ if __name__ == "__main__":
 
     # #! TODO: Remove this, only for testing
     # tweets_csv_data = [
-    #     (lambda ds: setattr(ds, "df", ds.df[:10000]) or ds)(tweet_csv_data)
+    #     (lambda ds: setattr(ds, "df", ds.df[:1000]) or ds)(tweet_csv_data)
     #     for tweet_csv_data in tweets_csv_data
     # ]
 
@@ -100,26 +102,23 @@ if __name__ == "__main__":
         logger.info(f"processing tweets for {model_name}")
 
         processed_tweets = 0
+        with tqdm(total=total_tweets, desc=f"{model_name} Processing", 
+                 miniters=max(1, int(total_tweets/100))) as pbar:
+            
+            sentiment_ds_list = []
+            for tweet_ds in tweets_data:
+                df_copy = tweet_ds.df.copy()
+                for idx, row in df_copy.iterrows():
+                    df_copy.at[idx, "sentiment"] = model.predict(row["text"])
+                    processed_tweets += 1
+                    pbar.update(1)
 
-        sentiment_ds_list = []
-        for tweet_ds in tweets_data:
-            df_copy = tweet_ds.df.copy()
-            for idx, row in df_copy.iterrows():
-                df_copy.at[idx, "sentiment"] = model.predict(row["text"])
-                processed_tweets += 1
-                
-                if processed_tweets % (total_tweets * 0.1) == 0:
-                    remaining = total_tweets - processed_tweets
-                    logger.info(
-                        f"Processed {processed_tweets:,} tweets; {remaining:,} remaining..."
-                    )
+                tweet_ds.df = df_copy
+                sentiment_ds_list.append(tweet_ds)
 
-            tweet_ds.df = df_copy
-            sentiment_ds_list.append(tweet_ds)
-
-        sentiments[model_name] = {
-            "sentiment_ds": sentiment_ds_list
-        }
+            sentiments[model_name] = {
+                "sentiment_ds": sentiment_ds_list
+            }
 
     logger.info("sentiment prediction done")
 
